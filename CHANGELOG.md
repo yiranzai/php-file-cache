@@ -15,7 +15,7 @@ Updates should follow the [Keep a CHANGELOG](http://keepachangelog.com/) princip
 ### Deprecated
 
 -   `put($key, $data, $minutes): Cache`  put one cache to file,set expired time
-    -   `minutes` can be a `int` or `DateTime` or `null` or [Supported Date and Time Formats ](http:us1.php.net/manual/zh/datetime.formats.php)
+    -   `$minutes` can be a `int` or `DateTime` or `null` or [Supported Date and Time Formats ](http:us1.php.net/manual/zh/datetime.formats.php)
 -   `get($key, $default = null): ?string`  get the data corresponding to the key
 -   `dataPath($path): self`  change data save path
 

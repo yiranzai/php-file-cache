@@ -45,13 +45,13 @@ $ composer require yiranzai/file-cache
 
 This package provides these methods.
 
--   `put($key, $data, $minutes): Cache` // put one cache to file,set expired time
-    -   `minutes` can be a `int` or `DateTime` or `null` or [Supported Date and Time Formats ](http://us1.php.net/manual/zh/datetime.formats.php)
--   `forever($key, $data): Cache` // forever save one cache to file
--   `get($key, $default = null): ?string` // get the data corresponding to the key
--   `delete($key): bool` // delete one cache
--   `flush(): void` // delete all cache
--   `dataPath($path): self` // change data save path
+-   `put($key, $data, $minutes): Cache`  put one cache to file,set expired time
+    -   `$minutes` can be a `int` or `DateTime` or `null` or [Supported Date and Time Formats ](http://us1.php.net/manual/zh/datetime.formats.php)
+-   `forever($key, $data): Cache`  forever save one cache to file
+-   `get($key, $default = null): ?string`  get the data corresponding to the key
+-   `delete($key): bool`  delete one cache
+-   `flush(): void`  delete all cache
+-   `dataPath($path): self`  change data save path
 
 ### Demo
 

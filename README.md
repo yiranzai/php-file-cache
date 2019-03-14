@@ -11,14 +11,12 @@
 [![Quality Score][ico-code-quality]][link-code-quality]
 [![Total Downloads][ico-downloads]][link-downloads]
 
-PHP File Cache, use chaining resolve hash conflict. one cache, one file, one bucket.
+PHP File Cache, use [Separate Chaining](https://en.wikipedia.org/wiki/Hash_table#separate_chaining) resolve hash conflict. one cache, one file, one bucket.
 
 ## Feature
 
-This package is different from other packages
-
 -   Cache can set expired time.
--   Use chaining resolve hash conflict.
+-   Use [Separate Chaining](https://en.wikipedia.org/wiki/Hash_table#separate_chaining) resolve hash conflict.
 -   Hash key is the path to store data.
 
 ## Structure

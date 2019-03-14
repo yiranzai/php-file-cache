@@ -1,7 +1,7 @@
 {
     "name": "yiranzai/file-cache",
     "type": "library",
-    "description": "php file cache",
+    "description": "PHP File Cache, use Separate Chaining resolve hash conflict. one cache, one file, one bucket.",
     "keywords": [
         "yiranzai",
         "file-cache"

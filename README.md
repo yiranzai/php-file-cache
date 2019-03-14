@@ -11,6 +11,16 @@
 [![Quality Score][ico-code-quality]][link-code-quality]
 [![Total Downloads][ico-downloads]][link-downloads]
 
+PHP File Cache, use chaining resolve hash conflict. one cache, one file, one bucket.
+
+## Feature
+
+This package is different from other packages
+
+-   Cache can set expired time.
+-   Use chaining resolve hash conflict.
+-   Hash key is the path to store data.
+
 ## Structure
 
 If any of the following are applicable to your project, then the directory structure should follow industry best practices by being named the following.
@@ -21,22 +31,43 @@ tests/
 vendor/
 ```
 
-
 ## Install
 
 Via Composer
 
-``` bash
+```bash
 $ composer require yiranzai/file-cache
 ```
 
 ## Usage
 
-``` php
+### API
+
+This package provides these methods.
+
+-   `put($key, $data, $minutes): Cache` // put one cache to file,set expired time
+    -   `minutes` can be a `int` or `DateTime` or `null` or [Supported Date and Time Formats ](http://us1.php.net/manual/zh/datetime.formats.php)
+-   `forever($key, $data): Cache` // forever save one cache to file
+-   `get($key, $default = null): ?string` // get the data corresponding to the key
+-   `delete($key): bool` // delete one cache
+-   `flush(): void` // delete all cache
+-   `dataPath($path): self` // change data save path
+
+### Demo
+
+```php
 $cache = new Yiranzai\File\Cache();
 
-$cache->put('key', 'data');
+$cache->put('key', 'data', 10);
+$cache->put('key1', 'data1', new DateTime());
+$cache->put('key2', 'data2', 'now');
+$cache->forever('key3', 'data3');
+
 $cache->get('key');   // data
+
+$cache->delete('key');   // true
+
+$cache->flush();
 
 $cache->get('not_exists','nothing');   // nothing
 $cache->dataPath('YOUR_PATH');
@@ -52,7 +83,7 @@ Please see [CHANGELOG](CHANGELOG.md) for more information on what has changed re
 
 ## Testing
 
-``` bash
+```bash
 $ composer test
 ```
 
@@ -66,8 +97,8 @@ If you discover any security related issues, please email wuqingdzx@gmail.com in
 
 ## Credits
 
-- [yiranzai][link-author]
-- [All Contributors][link-contributors]
+-   [yiranzai][link-author]
+-   [All Contributors][link-contributors]
 
 ## License
 
@@ -79,7 +110,6 @@ The MIT License (MIT). Please see [License File](LICENSE.md) for more informatio
 [ico-scrutinizer]: https://img.shields.io/scrutinizer/coverage/g/yiranzai/php-file-cache.svg?style=flat-square
 [ico-code-quality]: https://img.shields.io/scrutinizer/g/yiranzai/php-file-cache.svg?style=flat-square
 [ico-downloads]: https://img.shields.io/packagist/dt/yiranzai/file-cache.svg?style=flat-square
-
 [link-packagist]: https://packagist.org/packages/yiranzai/file-cache
 [link-travis]: https://travis-ci.org/yiranzai/php-file-cache
 [link-scrutinizer]: https://scrutinizer-ci.com/g/yiranzai/php-file-cache/code-structure

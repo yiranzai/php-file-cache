@@ -2,6 +2,8 @@
 
 namespace Yiranzai\File;
 
+use DateTime;
+
 /**
  * Class Bucket
  * @package Yiranzai\Dht
@@ -15,12 +17,13 @@ class Bucket
 
     /**
      * Bucket constructor.
-     * @param $key
-     * @param $data
+     * @param string        $key
+     * @param string        $data
+     * @param DateTime|null $date
      */
-    public function __construct(string $key, string $data = null)
+    public function __construct(string $key, string $data = null, DateTime $date = null)
     {
-        $this->head = new Node($key, $data);
+        $this->head = new Node($key, $data, $date);
     }
 
     /**
@@ -42,17 +45,18 @@ class Bucket
     /**
      * 增加节点
      *
-     * @param string $key
-     * @param string $data
+     * @param string        $key
+     * @param string        $data
+     * @param DateTime|null $date
      * @return Bucket
      */
-    public function addNode(string $key, string $data = null): Bucket
+    public function addNode(string $key, string $data = null, DateTime $date = null): Bucket
     {
         $cur = $this->head;
         while ($cur->next !== null) {
             $cur = $cur->next;
         }
-        $new       = new Node($key, $data);
+        $new       = new Node($key, $data, $date);
         $cur->next = $new;
         return $this;
     }
@@ -60,11 +64,12 @@ class Bucket
     /**
      * 增加节点
      *
-     * @param string $key
-     * @param string $data
+     * @param string        $key
+     * @param string        $data
+     * @param DateTime|null $date
      * @return Bucket
      */
-    public function putNode(string $key, string $data = null): Bucket
+    public function putNode(string $key, string $data = null, DateTime $date = null): Bucket
     {
         $cur = $this->head;
         if ($cur->key === $key) {
@@ -78,7 +83,7 @@ class Bucket
                 return $this;
             }
         }
-        $new       = new Node($key, $data);
+        $new       = new Node($key, $data, $date);
         $cur->next = $new;
         return $this;
     }
@@ -86,15 +91,16 @@ class Bucket
     /**
      * 紧接着插在$noNum后
      *
-     * @param string $k
-     * @param string $index
-     * @param string $data
+     * @param string        $k
+     * @param string        $index
+     * @param string        $data
+     * @param DateTime|null $date
      * @return Bucket
      */
-    public function insertNode(string $k, string $index, string $data = null): Bucket
+    public function insertNode(string $k, string $index, string $data = null, DateTime $date = null): Bucket
     {
         $cur = $this->head;
-        $new = new Node($k, $data);
+        $new = new Node($k, $data, $date);
         if ($cur->key !== $index) {
             while ($cur->next !== null) {
                 $cur = $cur->next;
@@ -117,18 +123,15 @@ class Bucket
     public function delNode(string $key): Bucket
     {
         $cur = $this->head;
-        if ($cur->next !== null) {
-            if ($cur->key === $key) {
-                $this->head = $cur->next;
-            } else {
-                while ($cur->next !== null) {
-                    if ($cur->next->key === $key) {
-                        $cur->next = $cur->next->next;
-                        break;
-                    }
-                    $cur = $cur->next;
-                }
+        if ($cur->key === $key) {
+            $this->head = $cur->next;
+        }
+        while ($cur->next !== null) {
+            if ($cur->next->key === $key) {
+                $cur->next = $cur->next->next;
+                break;
             }
+            $cur = $cur->next;
         }
         return $this;
     }
@@ -137,15 +140,29 @@ class Bucket
      * 遍历链表
      *
      * @return Bucket
+     * @throws \Exception
      */
     public function showNode(): Bucket
     {
         $cur = $this->head;
         while ($cur->next !== null) {
             $cur = $cur->next;
-            echo $cur->data . PHP_EOL;
+            echo $cur->getData() . PHP_EOL;
         }
         return $this;
+    }
+
+    /**
+     * 寻找某节点的值
+     *
+     * @param string $key
+     * @return string|null
+     * @throws \Exception
+     */
+    public function find(string $key): ?string
+    {
+        $node = $this->findNode($key);
+        return $node === null ? null : $node->getData();
     }
 
     /**
@@ -170,14 +187,10 @@ class Bucket
     }
 
     /**
-     * 寻找某节点的值
-     *
-     * @param string $key
-     * @return string|null
+     * @return bool
      */
-    public function find(string $key): ?string
+    public function isNull(): bool
     {
-        $node = $this->findNode($key);
-        return $node === null ? null : $node->data;
+        return $this->head === null;
     }
 }

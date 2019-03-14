@@ -8,6 +8,33 @@ class Filesystem
 {
 
     /**
+     * Get the MD5 hash of the file at the given path.
+     *
+     * @param  string $path
+     * @return string
+     */
+    public function hash($path): string
+    {
+        return md5_file($path);
+    }
+
+    /**
+     * Prepend to a file.
+     *
+     * @param  string $path
+     * @param  string $data
+     * @return int
+     */
+    public function prepend($path, $data): int
+    {
+        if ($this->exists($path)) {
+            return $this->put($path, $data . $this->get($path));
+        }
+
+        return $this->put($path, $data);
+    }
+
+    /**
      * Determine if a file or directory exists.
      *
      * @param  string $path
@@ -16,6 +43,19 @@ class Filesystem
     public function exists($path): bool
     {
         return file_exists($path);
+    }
+
+    /**
+     * Write the contents of a file.
+     *
+     * @param  string $path
+     * @param  string $contents
+     * @param  bool   $lock
+     * @return int
+     */
+    public function put($path, $contents, $lock = false): int
+    {
+        return file_put_contents($path, $contents, $lock ? LOCK_EX : 0);
     }
 
     /**
@@ -32,6 +72,17 @@ class Filesystem
         }
 
         throw new \RuntimeException("File does not exist at path {$path}");
+    }
+
+    /**
+     * Determine if the given path is a file.
+     *
+     * @param  string $file
+     * @return bool
+     */
+    public function isFile($file): bool
+    {
+        return is_file($file);
     }
 
     /**
@@ -64,43 +115,14 @@ class Filesystem
     }
 
     /**
-     * Get the MD5 hash of the file at the given path.
+     * Get the file size of a given file.
      *
      * @param  string $path
-     * @return string
-     */
-    public function hash($path): string
-    {
-        return md5_file($path);
-    }
-
-    /**
-     * Write the contents of a file.
-     *
-     * @param  string $path
-     * @param  string $contents
-     * @param  bool   $lock
      * @return int
      */
-    public function put($path, $contents, $lock = false): int
+    public function size($path): int
     {
-        return file_put_contents($path, $contents, $lock ? LOCK_EX : 0);
-    }
-
-    /**
-     * Prepend to a file.
-     *
-     * @param  string $path
-     * @param  string $data
-     * @return int
-     */
-    public function prepend($path, $data): int
-    {
-        if ($this->exists($path)) {
-            return $this->put($path, $data . $this->get($path));
-        }
-
-        return $this->put($path, $data);
+        return filesize($path);
     }
 
     /**
@@ -132,31 +154,6 @@ class Filesystem
     }
 
     /**
-     * Delete the file at a given path.
-     *
-     * @param  string|array $paths
-     * @return bool
-     */
-    public function delete($paths): bool
-    {
-        $paths = is_array($paths) ? $paths : func_get_args();
-
-        $success = true;
-
-        foreach ($paths as $path) {
-            try {
-                if (!@unlink($path)) {
-                    $success = false;
-                }
-            } catch (\Exception $e) {
-                $success = false;
-            }
-        }
-
-        return $success;
-    }
-
-    /**
      * Move a file to a new location.
      *
      * @param  string $path
@@ -166,18 +163,6 @@ class Filesystem
     public function move($path, $target): bool
     {
         return rename($path, $target);
-    }
-
-    /**
-     * Copy a file to a new location.
-     *
-     * @param  string $path
-     * @param  string $target
-     * @return bool
-     */
-    public function copy($path, $target): bool
-    {
-        return copy($path, $target);
     }
 
     /**
@@ -247,17 +232,6 @@ class Filesystem
     }
 
     /**
-     * Get the file size of a given file.
-     *
-     * @param  string $path
-     * @return int
-     */
-    public function size($path): int
-    {
-        return filesize($path);
-    }
-
-    /**
      * Get the file's last modification time.
      *
      * @param  string $path
@@ -266,17 +240,6 @@ class Filesystem
     public function lastModified($path): int
     {
         return filemtime($path);
-    }
-
-    /**
-     * Determine if the given path is a directory.
-     *
-     * @param  string $directory
-     * @return bool
-     */
-    public function isDirectory($directory): bool
-    {
-        return is_dir($directory);
     }
 
     /**
@@ -302,35 +265,6 @@ class Filesystem
     }
 
     /**
-     * Determine if the given path is a file.
-     *
-     * @param  string $file
-     * @return bool
-     */
-    public function isFile($file): bool
-    {
-        return is_file($file);
-    }
-
-    /**
-     * Create a directory.
-     *
-     * @param  string $path
-     * @param  int    $mode
-     * @param  bool   $recursive
-     * @param  bool   $force
-     * @return bool
-     */
-    public function makeDirectory($path, $mode = 0755, $recursive = false, $force = false): bool
-    {
-        if ($force) {
-            return @mkdir($path, $mode, $recursive);
-        }
-
-        return mkdir($path, $mode, $recursive);
-    }
-
-    /**
      * Move a directory.
      *
      * @param  string $from
@@ -345,6 +279,74 @@ class Filesystem
         }
 
         return @rename($from, $to) === true;
+    }
+
+    /**
+     * Determine if the given path is a directory.
+     *
+     * @param  string $directory
+     * @return bool
+     */
+    public function isDirectory($directory): bool
+    {
+        return is_dir($directory);
+    }
+
+    /**
+     * Recursively delete a directory.
+     *
+     * The directory itself may be optionally preserved.
+     *
+     * @param  string $directory
+     * @param  bool   $preserve
+     * @return bool
+     */
+    public function deleteDirectory($directory, $preserve = false): bool
+    {
+        if (!$this->isDirectory($directory)) {
+            return false;
+        }
+
+        $items = new FilesystemIterator($directory);
+
+        foreach ($items as $item) {
+            if ($item->isDir() && !$item->isLink()) {
+                $this->deleteDirectory($item->getPathname());
+            } else {
+                $this->delete($item->getPathname());
+            }
+        }
+
+        if (!$preserve) {
+            /** @scrutinizer ignore-unhandled */ @rmdir($directory);
+        }
+
+        return true;
+    }
+
+    /**
+     * Delete the file at a given path.
+     *
+     * @param  string|array $paths
+     * @return bool
+     */
+    public function delete($paths): bool
+    {
+        $paths = is_array($paths) ? $paths : func_get_args();
+
+        $success = true;
+
+        foreach ($paths as $path) {
+            try {
+                if (!@unlink($path)) {
+                    $success = false;
+                }
+            } catch (\Exception $e) {
+                $success = false;
+            }
+        }
+
+        return $success;
     }
 
     /**
@@ -389,35 +391,33 @@ class Filesystem
     }
 
     /**
-     * Recursively delete a directory.
+     * Create a directory.
      *
-     * The directory itself may be optionally preserved.
-     *
-     * @param  string $directory
-     * @param  bool   $preserve
+     * @param  string $path
+     * @param  int    $mode
+     * @param  bool   $recursive
+     * @param  bool   $force
      * @return bool
      */
-    public function deleteDirectory($directory, $preserve = false): bool
+    public function makeDirectory($path, $mode = 0755, $recursive = false, $force = false): bool
     {
-        if (!$this->isDirectory($directory)) {
-            return false;
+        if ($force) {
+            return @mkdir($path, $mode, $recursive);
         }
 
-        $items = new FilesystemIterator($directory);
+        return mkdir($path, $mode, $recursive);
+    }
 
-        foreach ($items as $item) {
-            if ($item->isDir() && !$item->isLink()) {
-                $this->deleteDirectory($item->getPathname());
-            } else {
-                $this->delete($item->getPathname());
-            }
-        }
-
-        if (!$preserve) {
-            /** @scrutinizer ignore-unhandled */ @rmdir($directory);
-        }
-
-        return true;
+    /**
+     * Copy a file to a new location.
+     *
+     * @param  string $path
+     * @param  string $target
+     * @return bool
+     */
+    public function copy($path, $target): bool
+    {
+        return copy($path, $target);
     }
 
     /**

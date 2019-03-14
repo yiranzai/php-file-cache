@@ -2,6 +2,8 @@
 
 namespace Yiranzai\File;
 
+use DateTime;
+
 /**
  * Class Node
  * @package Yiranzai\Dht
@@ -9,7 +11,7 @@ namespace Yiranzai\File;
 class Node
 {
     /**
-     * @var
+     * @var string
      */
     public $data;
     /**
@@ -17,18 +19,49 @@ class Node
      */
     public $next;
     /**
-     * @var
+     * @var string
      */
     public $key;
+    /**
+     * @var DateTime
+     */
+    protected $expiredAt;
 
     /**
      * Node constructor.
-     * @param string $key
-     * @param string $data
+     * @param string   $key
+     * @param string   $data
+     * @param DateTime $expiredAt
      */
-    public function __construct(string $key, string $data = null)
+    public function __construct(string $key, string $data, DateTime $expiredAt = null)
     {
-        $this->key  = $key;
-        $this->data = $data;
+        $this->key       = $key;
+        $this->data      = $data;
+        $this->expiredAt = $expiredAt;
+    }
+
+    /**
+     * @param null|string $default
+     * @return string|null
+     * @throws \Exception
+     */
+    public function getData($default = null): ?string
+    {
+        if ($this->isExpired()) {
+            return $default;
+        }
+        return $this->data;
+    }
+
+    /**
+     * @return bool
+     * @throws \Exception
+     */
+    public function isExpired(): bool
+    {
+        if ($this->expiredAt === null) {
+            return false;
+        }
+        return $this->expiredAt < new DateTime();
     }
 }
